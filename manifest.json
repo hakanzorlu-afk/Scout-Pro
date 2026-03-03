@@ -1,0 +1,9 @@
+{
+  "name": "SCOUT PRO",
+  "short_name": "SCOUT",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [{"src": "/icon.png", "sizes": "192x192", "type": "image/png"}]
+}
