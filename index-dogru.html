@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SCOUT PRO">
+<link rel="manifest" href="/manifest.json">
+<title>SCOUT PRO</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f172a;--surface:#1e293b;--card:#263248;--border:#334155;
+  --green:#22c55e;--green2:rgba(34,197,94,.15);
+  --yellow:#f59e0b;--yellow2:rgba(245,158,11,.15);
+  --red:#ef4444;--red2:rgba(239,68,68,.15);
+  --orange:#f97316;--orange2:rgba(249,115,22,.15);
+  --purple:#a855f7;--purple2:rgba(168,85,247,.15);
+  --blue:#3b82f6;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;}
+body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+.app{display:flex;flex-direction:column;height:100%;}
+
+.hdr{background:#0f172a;padding:14px 18px 12px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:2px;}
+.logo span{color:var(--green);}
+.spill{display:flex;align-items:center;gap:7px;background:var(--surface);
+  padding:6px 12px;border-radius:20px;border:1px solid var(--border);}
+.sdot{width:9px;height:9px;border-radius:50%;background:var(--green);animation:glow 2s infinite;flex-shrink:0;}
+.sdot.err{background:var(--red);animation:none;}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.6);}50%{box-shadow:0 0 0 5px rgba(34,197,94,0);}}
+.stxt{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);}
+
+/* ALARM */
+.alarm-wrap{flex-shrink:0;overflow:hidden;max-height:0;transition:max-height .4s ease;}
+.alarm-wrap.open{max-height:400px;}
+.alarm-box{margin:10px 14px 0;background:linear-gradient(135deg,#450a0a,#7f1d1d);
+  border:2px solid var(--red);border-radius:16px;padding:16px;
+  animation:alarmPulse 1.2s infinite;}
+@keyframes alarmPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.7),0 0 25px rgba(239,68,68,.2);}
+  50%{box-shadow:0 0 0 10px rgba(239,68,68,0),0 0 40px rgba(239,68,68,.4);}
+}
+.alarm-hdr{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;
+  letter-spacing:2px;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.blink{animation:blink .6s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.alarm-item{background:rgba(0,0,0,.35);border-radius:10px;padding:11px 13px;
+  margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.alarm-item:last-child{margin-bottom:0;}
+.alarm-teams{font-size:13px;font-weight:600;color:#fff;}
+.alarm-sub{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;}
+.alarm-right{text-align:right;}
+.alarm-tags{display:flex;gap:5px;justify-content:flex-end;margin-bottom:4px;flex-wrap:wrap;}
+.atag{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;
+  padding:3px 8px;border-radius:5px;letter-spacing:.5px;}
+.atag.iy{background:var(--yellow);color:#000;}
+.atag.htft{background:var(--purple);color:#fff;}
+.alarm-conf{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--red);}
+
+/* NAV */
+.nav{display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+.ntab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:13px 8px 11px;border:none;background:none;color:var(--text3);
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;cursor:pointer;
+  transition:all .2s;border-bottom:3px solid transparent;margin-bottom:-1px;}
+.ntab .ni{font-size:24px;}
+.ntab.active.tiy{color:var(--yellow);border-bottom-color:var(--yellow);}
+.ntab.active.thtft{color:var(--purple);border-bottom-color:var(--purple);}
+
+.page{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.page.active{display:flex;}
+.pscroll{flex:1;overflow-y:auto;padding:14px;}
+.pscroll::-webkit-scrollbar{width:3px;}
+.pscroll::-webkit-scrollbar-thumb{background:var(--border);}
+
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:20px;}
+.spin{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--green);
+  border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-txt{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);text-align:center;line-height:2.2;}
+
+/* MATCH CARD */
+.mcard{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;
+  margin-bottom:16px;overflow:hidden;}
+.mcard.top{border-color:var(--green);box-shadow:0 0 20px rgba(34,197,94,.15);}
+.mcard.alarm{border-color:var(--red);box-shadow:0 0 20px rgba(239,68,68,.2);}
+
+.card-top{padding:12px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;}
+.card-league{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.5px;}
+.card-time{font-family:'DM Mono',monospace;font-size:12px;color:var(--yellow);font-weight:500;}
+.live-pill{background:var(--red);color:#fff;font-size:8px;font-weight:700;
+  padding:2px 8px;border-radius:4px;letter-spacing:1px;animation:glow2 .8s infinite;}
+@keyframes glow2{0%,100%{opacity:1;}50%{opacity:.6;}}
+
+.card-teams{padding:18px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.team{flex:1;text-align:center;}
+.team-name{font-family:'Syne',sans-serif;font-size:clamp(13px,3.5vw,17px);font-weight:800;
+  color:var(--text);line-height:1.3;}
+.vs{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:var(--text3);
+  letter-spacing:2px;flex-shrink:0;}
+
+/* CONFIDENCE */
+.conf-sec{padding:16px;border-bottom:1px solid var(--border);}
+.conf-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.conf-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);}
+.conf-pct{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;}
+.conf-pct.high{color:var(--green);}
+.conf-pct.mid{color:var(--yellow);}
+.conf-pct.low{color:var(--red);}
+.conf-bar{height:10px;background:var(--border);border-radius:5px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:5px;transition:width 1.3s cubic-bezier(.4,0,.2,1);}
+
+/* SIGNAL CARD */
+.sigs{padding:14px 16px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--border);}
+.sig{background:var(--card);border-radius:12px;padding:14px;}
+.sig-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.sig-type{font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:1px;}
+.sig-badge{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.sig-badge.g{background:var(--green2);color:var(--green);border:1px solid rgba(34,197,94,.3);}
+.sig-badge.y{background:var(--yellow2);color:var(--yellow);border:1px solid rgba(245,158,11,.3);}
+.sig-badge.r{background:var(--red2);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.sig-pick{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.sig-reason{font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;}
+.sig-prow{display:flex;align-items:center;gap:10px;}
+.sig-track{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
+.sig-fill{height:100%;border-radius:4px;}
+.sig-pct{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;min-width:44px;text-align:right;}
+
+/* AI BOX */
+.ai-box{margin:0 16px 14px;background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(79,70,229,.2));
+  border:1px solid rgba(168,85,247,.3);border-radius:12px;padding:14px;}
+.ai-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--purple);
+  margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.ai-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.ai-item{text-align:center;}
+.ai-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
+.ai-lbl{font-family:'DM Mono',monospace;font-size:8px;color:var(--text3);margin-top:2px;}
+
+/* HTFT GRID */
+.htft-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px;}
+.htft-cell{background:var(--card);border:1.5px solid var(--border);border-radius:14px;
+  padding:16px;text-align:center;}
+.htft-cell.hot12{border-color:var(--orange);background:var(--orange2);}
+.htft-cell.hot21{border-color:var(--purple);background:var(--purple2);}
+.htft-rev{display:inline-block;font-family:'DM Mono',monospace;font-size:8px;font-weight:700;
+  padding:2px 8px;border-radius:4px;margin-bottom:8px;}
+.htft-rev.r12{background:var(--orange);color:#000;}
+.htft-rev.r21{background:var(--purple);color:#fff;}
+.htft-combo{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;}
+.htft-combo.c12{color:var(--orange);}
+.htft-combo.c21{color:var(--purple);}
+.htft-combo.cx{color:var(--text2);}
+.htft-prob{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;margin-top:8px;}
+.htft-desc{font-size:10px;color:var(--text2);margin-top:5px;line-height:1.5;}
+.htft-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px;}
+.htft-fill{height:100%;border-radius:3px;}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 16px;}
+.sbox{background:var(--card);border-radius:12px;padding:14px;}
+.sbox-lbl{font-family:'DM Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:1px;margin-bottom:5px;}
+.sbox-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
+.sbox-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+
+.disc{padding:12px 14px;background:var(--yellow2);border:1px solid rgba(245,158,11,.25);
+  border-radius:10px;margin-top:4px;font-size:11px;color:var(--yellow);line-height:1.8;}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:60vh;gap:16px;text-align:center;padding:30px;}
+.empty .ei{font-size:60px;opacity:.3;}
+.empty .et{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text2);}
+.empty .es{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);line-height:2.2;}
+
+.err-box{padding:18px;background:var(--red2);border:1.5px solid rgba(239,68,68,.3);
+  border-radius:14px;font-size:12px;color:var(--red);line-height:1.9;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hdr">
+    <div class="logo">SCOUT <span>PRO</span></div>
+    <div class="spill">
+      <div class="sdot" id="sdot"></div>
+      <div class="stxt" id="stxt">BAGLANIYOR</div>
+    </div>
+  </div>
+
+  <div class="alarm-wrap" id="alarmWrap">
+    <div class="alarm-box">
+      <div class="alarm-hdr">
+        <span class="blink">🚨</span>
+        BUGUN KESINLIKLE OYNA
+        <span class="blink">🚨</span>
+      </div>
+      <div id="alarmItems"></div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="ntab tiy active" onclick="switchTab('iy',this)">
+      <span class="ni">⚡</span>IY 1.5 UST
+    </button>
+    <button class="ntab thtft" onclick="switchTab('htft',this)">
+      <span class="ni">🔄</span>HT/FT 1/2·2/1
+    </button>
+  </nav>
+
+  <div class="page active" id="page-iy">
+    <div class="pscroll" id="iy-scroll">
+      <div class="loader"><div class="spin"></div>
+        <div class="load-txt">Maclar yukleniyor...<br>Poisson modeli hesaplaniyor...<br>IY 1.5 analizi yapiliyor...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-htft">
+    <div class="pscroll" id="htft-scroll">
+      <div class="loader"><div class="spin"></div>
+        <div class="load-txt">HT/FT matrisi olusturuluyor...<br>Tersine donus olasiliklari...<br>En guclu kombinasyonlar seciliyor...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+'use strict';
+
+// ══ POISSON ══
+function poi(l,k){let r=Math.exp(-l);for(let i=1;i<=k;i++)r*=l/i;return r;}
+
+function calcAll(hFor, aFor, hAg, aAg){
+  const avg=1.42;
+  const lH=Math.max((hFor||1.35)*((aAg||1.3)/avg),.3);
+  const lA=Math.max((aFor||1.1)*((hAg||1.35)/avg),.2);
+
+  let hw=0,dr=0,aw=0,ov25=0,btts=0,iy15=0;
+  const ft={},ht={};
+
+  for(let h=0;h<=6;h++)for(let a=0;a<=6;a++){
+    const p=poi(lH,h)*poi(lA,a);
+    ft[`${h}-${a}`]=p;
+    if(h>a)hw+=p;else if(h===a)dr+=p;else aw+=p;
+    if(h+a>2.5)ov25+=p;
+    if(h>0&&a>0)btts+=p;
+  }
+  for(let h=0;h<=3;h++)for(let a=0;a<=3;a++){
+    const p=poi(lH*.44,h)*poi(lA*.44,a);
+    ht[`${h}-${a}`]=p;
+    if(h+a>=2)iy15+=p;
+  }
+
+  const htft={};
+  ['1','X','2'].forEach(hr=>['1','X','2'].forEach(fr=>htft[`${hr}/${fr}`]=0));
+  const htSum=Object.values(ht).reduce((a,b)=>a+b,0)||1;
+  const ftSum=Object.values(ft).reduce((a,b)=>a+b,0)||1;
+  Object.entries(ht).forEach(([hs,hp])=>{
+    const[hh,ha]=hs.split('-').map(Number);
+    const hr=hh>ha?'1':hh===ha?'X':'2';
+    Object.entries(ft).forEach(([fs,fp])=>{
+      const[fh,fa]=fs.split('-').map(Number);
+      const fr=fh>fa?'1':fh===fa?'X':'2';
+      htft[`${hr}/${fr}`]+=(hp/htSum)*(fp/ftSum);
+    });
+  });
+  const htftN={};
+  const tot=Object.values(htft).reduce((a,b)=>a+b,0)||1;
+  Object.entries(htft).forEach(([k,v])=>htftN[k]=+(v/tot*100).toFixed(2));
+
+  const homeScore=+((1-poi(lH,0))*100).toFixed(1);
+  const awayScore=+((1-poi(lA,0))*100).toFixed(1);
+
+  return{
+    lH:+lH.toFixed(3),lA:+lA.toFixed(3),
+    hw:+(hw*100).toFixed(1),dr:+(dr*100).toFixed(1),aw:+(aw*100).toFixed(1),
+    ov25:+(ov25*100).toFixed(1),btts:+(btts*100).toFixed(1),
+    iy15:+(iy15*100).toFixed(1),
+    homeScore,awayScore,htftN,
+  };
+}
+
+// ══ STATE ══
+let allMatches=[], analyzed=[], alarmMatches=[];
+let currentTab='iy';
+let loaded=false;
+
+// ══ TAB ══
+function switchTab(tab,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  btn.classList.add('active');
+  currentTab=tab;
+}
+
+// ══ STATUS ══
+function setStatus(ok,txt){
+  document.getElementById('stxt').textContent=txt;
+  const d=document.getElementById('sdot');
+  d.className='sdot'+(ok?'':' err');
+}
+
+// ══ LOAD ══
+async function load(){
+  setStatus(true,'YUKLENIYOR');
+  try{
+    const now=new Date();
+    const trDate=new Date(now.getTime()+3*60*60*1000).toISOString().split('T')[0];
+    const r=await fetch(`/api/fixtures?date=${trDate}`);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    if(data.error)throw new Error(data.error);
+
+    allMatches=(data.matches||[]).filter(m=>m.status!=='FINISHED');
+    setStatus(true,`${allMatches.length} MAC`);
+
+    // Analyze all
+    analyzed=allMatches.map(m=>{
+      const p=calcAll(1.35,1.1,1.3,1.35);
+      return{m,p};
+    });
+
+    buildAlarm();
+    renderIY();
+    renderHTFT();
+    loaded=true;
+  }catch(err){
+    setStatus(false,'HATA');
+    const errHtml=`<div class="err-box">⚠ API Hatasi: ${err.message}<br><br>
+      Vercel Environment Variables icinde <b>ALLSPORTS_KEY</b> tanimli mi kontrol et.<br>
+      Sonra Redeploy yap.</div>`;
+    document.getElementById('iy-scroll').innerHTML=errHtml;
+    document.getElementById('htft-scroll').innerHTML=errHtml;
+  }
+}
+
+// ══ ALARM ══
+function buildAlarm(){
+  // Find strongest IY15 and HTFT matches
+  const strong=analyzed.filter(x=>x.p.iy15>=55||(x.p.htftN['1/2']||0)+(x.p.htftN['2/1']||0)>=12);
+  if(!strong.length)return;
+  alarmMatches=strong.sort((a,b)=>Math.max(b.p.iy15,(b.p.htftN['1/2']||0)+(b.p.htftN['2/1']||0))-Math.max(a.p.iy15,(a.p.htftN['1/2']||0)+(a.p.htftN['2/1']||0))).slice(0,3);
+  const wrap=document.getElementById('alarmWrap');
+  const items=document.getElementById('alarmItems');
+  items.innerHTML=alarmMatches.map(x=>{
+    const tags=[];
+    if(x.p.iy15>=55)tags.push(`<span class="atag iy">IY UST 1.5 %${Math.round(x.p.iy15)}</span>`);
+    const htftMax=(x.p.htftN['1/2']||0)+(x.p.htftN['2/1']||0);
+    if(htftMax>=12)tags.push(`<span class="atag htft">HTFT DONUS %${Math.round(htftMax)}</span>`);
+    return`<div class="alarm-item">
+      <div><div class="alarm-teams">${x.m.home} — ${x.m.away}</div>
+      <div class="alarm-sub">${x.m.league} · ${x.m.time}</div></div>
+      <div class="alarm-right"><div class="alarm-tags">${tags.join('')}</div></div>
+    </div>`;
+  }).join('');
+  wrap.classList.add('open');
+}
+
+// ══ IY 1.5 ══
+function renderIY(){
+  const cont=document.getElementById('iy-scroll');
+  const sorted=[...analyzed].sort((a,b)=>b.p.iy15-a.p.iy15);
+
+  if(!sorted.length){
+    cont.innerHTML=`<div class="empty"><div class="ei">⚡</div><div class="et">Mac bulunamadi</div><div class="es">Bugun analiz edilecek mac yok.<br>Lutfen daha sonra tekrar kontrol et.</div></div>`;
+    return;
+  }
+
+  const cards=sorted.map((x,i)=>{
+    const{m,p}=x;
+    const conf=p.iy15;
+    const isTop=conf>=60, isAlarm=conf>=70;
+    const confColor=conf>=65?'high':conf>=50?'mid':'low';
+    const fillColor=conf>=65?'#22c55e':conf>=50?'#f59e0b':'#ef4444';
+    const badgeCls=conf>=65?'g':conf>=50?'y':'r';
+    const badgeTxt=conf>=70?'✅ COK GUCLU':conf>=60?'⚡ GUCLU':conf>=50?'👍 ORTA':'⚠ ZAYIF';
+
+    const reason=`Poisson IY lambda: ${(p.lH*.44).toFixed(2)} + ${(p.lA*.44).toFixed(2)} = ${(p.lH*.44+p.lA*.44).toFixed(2)} | ` +
+      `Ev lambda: ${p.lH} | Dep lambda: ${p.lA} | ` +
+      `Toplam 2.5 ust: %${p.ov25} | KG Var: %${p.btts} | ` +
+      `Ev gol atar: %${p.homeScore} | Dep gol atar: %${p.awayScore}`;
+
+    const aiSection=m.pred?`
+      <div class="ai-box">
+        <div class="ai-title">🤖 AI MODEL TAHMINi (Bzzoiro ML)</div>
+        <div class="ai-grid">
+          <div class="ai-item"><div class="ai-val" style="color:var(--blue)">${m.pred.probOver25}%</div><div class="ai-lbl">UST 2.5</div></div>
+          <div class="ai-item"><div class="ai-val" style="color:var(--green)">${m.pred.probBtts}%</div><div class="ai-lbl">KG VAR</div></div>
+          <div class="ai-item"><div class="ai-val" style="color:var(--purple)">${m.pred.confidence}%</div><div class="ai-lbl">AI GUVEN</div></div>
+        </div>
+      </div>`:'';
+
+    return`<div class="mcard${isAlarm?' alarm':isTop?' top':''}">
+      <div class="card-top">
+        <div class="card-league">${m.leagueCountry?m.leagueCountry+' · ':''} ${m.league}</div>
+        <div class="card-time">${m.status==='IN_PLAY'?`<span class="live-pill">🔴 CANLI ${m.minute?m.minute+"'":''}</span>`:m.time}</div>
+      </div>
+      <div class="card-teams">
+        <div class="team"><div class="team-name">${m.home}</div></div>
+        <div class="vs">VS</div>
+        <div class="team"><div class="team-name">${m.away}</div></div>
+      </div>
+      <div class="conf-sec">
+        <div class="conf-row">
+          <div class="conf-label">IY 1.5 UST OLASILIGI</div>
+          <div class="conf-pct ${confColor}">${Math.round(conf)}%</div>
+        </div>
+        <div class="conf-bar"><div class="conf-fill" style="width:0%;background:${fillColor}" data-w="${Math.min(Math.round(conf),95)}%"></div></div>
+      </div>
+      ${aiSection}
+      <div class="sigs">
+        <div class="sig">
+          <div class="sig-top">
+            <div class="sig-type">IY 1.5 UST ANALiZ</div>
+            <div class="sig-badge ${badgeCls}">${badgeTxt}</div>
+          </div>
+          <div class="sig-pick">⚡ IY Ust 1.5</div>
+          <div class="sig-reason">${reason}</div>
+          <div class="sig-prow">
+            <div class="sig-track"><div class="sig-fill" style="width:0%;background:${fillColor}" data-w="${Math.min(Math.round(conf),95)}%"></div></div>
+            <div class="sig-pct" style="color:${fillColor}">${Math.round(conf)}%</div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="sbox"><div class="sbox-lbl">EV LAMBDA (IY)</div><div class="sbox-val" style="color:var(--green)">${(p.lH*.44).toFixed(3)}</div><div class="sbox-sub">${m.home}</div></div>
+        <div class="sbox"><div class="sbox-lbl">DEP LAMBDA (IY)</div><div class="sbox-val" style="color:var(--blue)">${(p.lA*.44).toFixed(3)}</div><div class="sbox-sub">${m.away}</div></div>
+        <div class="sbox"><div class="sbox-lbl">EV KAZANMA</div><div class="sbox-val" style="color:var(--yellow)">${p.hw}%</div><div class="sbox-sub">Mac sonu</div></div>
+        <div class="sbox"><div class="sbox-lbl">UST 2.5</div><div class="sbox-val" style="color:var(--orange)">${p.ov25}%</div><div class="sbox-sub">Tam mac</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  cont.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">⚡ IY 1.5 Ust</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);">${sorted.length} Mac</div>
+    </div>
+    <div class="disc" style="margin-bottom:16px;">📊 En guclu IY 1.5 Ust beklentili maclar — Poisson modeli + AI tahmin birlesimi. Yukarida olanlar en guclu sinyaller.</div>
+    ${cards}`;
+  setTimeout(()=>document.querySelectorAll('[data-w]').forEach(el=>el.style.width=el.dataset.w),100);
+}
+
+// ══ HT/FT ══
+function renderHTFT(){
+  const cont=document.getElementById('htft-scroll');
+
+  const scored=analyzed.map(x=>({
+    ...x,
+    htftScore:(x.p.htftN['1/2']||0)+(x.p.htftN['2/1']||0)
+  })).sort((a,b)=>b.htftScore-a.htftScore);
+
+  if(!scored.length){
+    cont.innerHTML=`<div class="empty"><div class="ei">🔄</div><div class="et">Mac bulunamadi</div></div>`;
+    return;
+  }
+
+  const cards=scored.map((x,i)=>{
+    const{m,p}=x;
+    const p12=p.htftN['1/2']||0, p21=p.htftN['2/1']||0;
+    const p11=p.htftN['1/1']||0, p22=p.htftN['2/2']||0;
+    const px1=p.htftN['X/1']||0, px2=p.htftN['X/2']||0;
+    const totalRev=p12+p21;
+    const conf=Math.min(totalRev*3.5,85);
+    const confColor=conf>=55?'high':conf>=40?'mid':'low';
+    const fillColor=conf>=55?'#22c55e':conf>=40?'#f59e0b':'#ef4444';
+    const maxAll=Math.max(p12,p21,p11,p22,px1,px2);
+
+    const bestRev=p12>p21?'1/2':'2/1';
+    const bestRevP=Math.max(p12,p21);
+    const badgeCls=conf>=55?'g':conf>=40?'y':'r';
+    const badgeTxt=conf>=55?'✅ GUCLU DONUS':conf>=40?'⚡ ORTA':'⚠ ZAYIF';
+
+    const reason=`1/2 (${m.home} onde baslar, ${m.away} kazanir): %${p12} | ` +
+      `2/1 (${m.away} onde baslar, ${m.home} kazanir): %${p21} | ` +
+      `Toplam donus olasiligi: %${totalRev.toFixed(1)} | ` +
+      `Ev lambda: ${p.lH} | Dep lambda: ${p.lA} | ` +
+      `Lambda farki: ${Math.abs(p.lH-p.lA).toFixed(3)} — Bu maclarda tersine donus daha muhtemel.`;
+
+    const aiSection=m.pred?`
+      <div class="ai-box">
+        <div class="ai-title">🤖 AI MODEL TAHMINi</div>
+        <div class="ai-grid">
+          <div class="ai-item"><div class="ai-val" style="color:var(--green)">${m.pred.probHomeWin}%</div><div class="ai-lbl">EV KAZANIR</div></div>
+          <div class="ai-item"><div class="ai-val" style="color:var(--yellow)">${m.pred.probDraw}%</div><div class="ai-lbl">BERABERLIK</div></div>
+          <div class="ai-item"><div class="ai-val" style="color:var(--red)">${m.pred.probAwayWin}%</div><div class="ai-lbl">DEP KAZANIR</div></div>
+        </div>
+      </div>`:'';
+
+    return`<div class="mcard${conf>=55?' top':conf>=70?' alarm':''}">
+      <div class="card-top">
+        <div class="card-league">${m.leagueCountry?m.leagueCountry+' · ':''} ${m.league}</div>
+        <div class="card-time">${m.status==='IN_PLAY'?`<span class="live-pill">🔴 CANLI ${m.minute?m.minute+"'":''}</span>`:m.time}</div>
+      </div>
+      <div class="card-teams">
+        <div class="team"><div class="team-name">${m.home}</div></div>
+        <div class="vs">VS</div>
+        <div class="team"><div class="team-name">${m.away}</div></div>
+      </div>
+      <div class="conf-sec">
+        <div class="conf-row">
+          <div class="conf-label">TERSINE DONUS OLASILIGI (1/2 + 2/1)</div>
+          <div class="conf-pct ${confColor}">${totalRev.toFixed(1)}%</div>
+        </div>
+        <div class="conf-bar"><div class="conf-fill" style="width:0%;background:${fillColor}" data-w="${Math.min(Math.round(totalRev*2),95)}%"></div></div>
+      </div>
+      ${aiSection}
+      <div class="sigs">
+        <div class="sig">
+          <div class="sig-top">
+            <div class="sig-type">EN iYi DONUS KOMBiNASYONU</div>
+            <div class="sig-badge ${badgeCls}">${badgeTxt}</div>
+          </div>
+          <div class="sig-pick">🔄 ${bestRev} — %${bestRevP.toFixed(1)}</div>
+          <div class="sig-reason">${reason}</div>
+          <div class="sig-prow">
+            <div class="sig-track"><div class="sig-fill" style="width:0%;background:${fillColor}" data-w="${Math.min(Math.round(bestRevP*4),95)}%"></div></div>
+            <div class="sig-pct" style="color:${fillColor}">${bestRevP.toFixed(1)}%</div>
+          </div>
+        </div>
+      </div>
+      <div class="htft-grid">
+        <div class="htft-cell hot12">
+          <div class="htft-rev r12">DONUS ★</div>
+          <div class="htft-combo c12">1/2</div>
+          <div class="htft-prob" style="color:var(--orange)">%${p12.toFixed(1)}</div>
+          <div class="htft-desc">IY: ${m.home}<br>MS: ${m.away}</div>
+          <div class="htft-bar"><div class="htft-fill" style="width:0%;background:var(--orange)" data-w="${Math.round(p12/Math.max(maxAll,.01)*100)}%"></div></div>
+        </div>
+        <div class="htft-cell hot21">
+          <div class="htft-rev r21">DONUS ★</div>
+          <div class="htft-combo c21">2/1</div>
+          <div class="htft-prob" style="color:var(--purple)">%${p21.toFixed(1)}</div>
+          <div class="htft-desc">IY: ${m.away}<br>MS: ${m.home}</div>
+          <div class="htft-bar"><div class="htft-fill" style="width:0%;background:var(--purple)" data-w="${Math.round(p21/Math.max(maxAll,.01)*100)}%"></div></div>
+        </div>
+        <div class="htft-cell">
+          <div class="htft-combo cx">1/1</div>
+          <div class="htft-prob">%${p11.toFixed(1)}</div>
+          <div class="htft-desc">IY ve MS<br>${m.home}</div>
+          <div class="htft-bar"><div class="htft-fill" style="width:0%;background:var(--green)" data-w="${Math.round(p11/Math.max(maxAll,.01)*100)}%"></div></div>
+        </div>
+        <div class="htft-cell">
+          <div class="htft-combo cx">2/2</div>
+          <div class="htft-prob">%${p22.toFixed(1)}</div>
+          <div class="htft-desc">IY ve MS<br>${m.away}</div>
+          <div class="htft-bar"><div class="htft-fill" style="width:0%;background:var(--blue)" data-w="${Math.round(p22/Math.max(maxAll,.01)*100)}%"></div></div>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <div class="disc">📌 1/2: IY ${m.home} once alir, mac sonunda ${m.away} kazanir. 2/1: IY ${m.away} once alir, mac sonunda ${m.home} kazanir. Yuksek oran — yuksek risk.</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  cont.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">🔄 HT/FT Donus</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);">${scored.length} Mac</div>
+    </div>
+    <div class="disc" style="margin-bottom:16px;">📊 1/2 ve 2/1 tersine donus kombinasyonlari — yuksek oran, yuksek risk. Sadece en guclu sinyaller icin oyna.</div>
+    ${cards}`;
+  setTimeout(()=>document.querySelectorAll('[data-w]').forEach(el=>el.style.width=el.dataset.w),100);
+}
+
+load();
+</script>
+</body>
+</html>
