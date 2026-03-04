@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/fixtures.js": {
-      "runtime": "nodejs18.x"
-    }
-  }
-}
